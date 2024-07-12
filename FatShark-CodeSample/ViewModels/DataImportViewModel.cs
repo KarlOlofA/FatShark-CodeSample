@@ -54,18 +54,20 @@ namespace FatShark_CodeSample.ViewModels
 
         public async void FetchLocationData(float searchRadius)
         {
-            if (AllPostalCodes.Length > 0)
+            if (AllPostalCodes == null || AllPostalCodes.Length <= 0)
             {
-                await SetCollectedCoordinates();
+                return;
             }
+            
+            await SetCollectedCoordinates();
 
             if (_collectedCoords.Coordinates.Count > 0)
             {
                 CoordinateCluster cluster = GetLargestCoordinateCluster(searchRadius);
-                Console.WriteLine("MASTER: " + cluster.OriginCoordinate.Postcode + " | " + cluster.Coordinates.Count());
+                Console.WriteLine("--> Cluster Master: " + cluster.OriginCoordinate.Postcode + " | " + cluster.Coordinates.Count + " <--");
                 foreach (var clusterCoordinate in cluster.Coordinates)
                 {
-                    Console.WriteLine("Child: " + clusterCoordinate.Postcode);
+                    Console.WriteLine("Cluster Child: " + clusterCoordinate.Postcode);
                 }
             }
         }

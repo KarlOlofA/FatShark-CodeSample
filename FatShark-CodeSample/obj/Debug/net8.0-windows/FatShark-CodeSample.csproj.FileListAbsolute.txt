@@ -21,3 +21,4 @@ C:\Users\GTSA - Infinity\Documents\CodeProjects\FatShark-CodeSample\FatShark-Cod
 C:\Users\GTSA - Infinity\Documents\CodeProjects\FatShark-CodeSample\FatShark-CodeSample\bin\Debug\net8.0-windows\Newtonsoft.Json.dll
 C:\Users\GTSA - Infinity\Documents\CodeProjects\FatShark-CodeSample\FatShark-CodeSample\obj\Debug\net8.0-windows\FatShark-CodeSample.csproj.AssemblyReference.cache
 C:\Users\GTSA - Infinity\Documents\CodeProjects\FatShark-CodeSample\FatShark-CodeSample\obj\Debug\net8.0-windows\FatShark-CodeSample.csproj.CopyComplete
+C:\Users\GTSA - Infinity\Documents\CodeProjects\FatShark-CodeSample\FatShark-CodeSample\obj\Debug\net8.0-windows\FatShark-CodeSample.sourcelink.json
