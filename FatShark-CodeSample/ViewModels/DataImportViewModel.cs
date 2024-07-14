@@ -1,11 +1,7 @@
 ﻿using Microsoft.Win32;
 using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Numerics;
 using System.Text;
-using System.Text.Json.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -20,11 +16,7 @@ namespace FatShark_CodeSample.ViewModels
         private string _filePath = "";
         
         private SampleData[] Data { get; set; }
-        private string[] AllEmails { get; set; }
-        private string?[] AllWebPages { get; set; }
-        private string?[] AllCities { get; set; }
-        private string?[] AllCompanies { get; set; }
-        private string?[] AllCounties { get; set; }
+        private string?[] AllEmails { get; set; }
         private string?[] AllPostalCodes { get; set; }
 
         private HttpClient _client = new HttpClient();
@@ -47,12 +39,12 @@ namespace FatShark_CodeSample.ViewModels
             return ImportCsvData();
         }
         
-        public void SelectFilePath()
+        public string SelectFilePath()
         {
-            BrowseFilePath();
+            return BrowseFilePath();
         }
 
-        public async void FetchLocationData(float searchRadius)
+        public async Task FetchLocationData(float searchRadius)
         {
             if (AllPostalCodes == null || AllPostalCodes.Length <= 0)
             {
@@ -70,6 +62,16 @@ namespace FatShark_CodeSample.ViewModels
                     Console.WriteLine("Cluster Child: " + clusterCoordinate.Postcode);
                 }
             }
+        }
+
+        public CoordinateContainer GetCoordinates()
+        {
+            return _collectedCoords;
+        }
+        
+        public CoordinateCluster GetLargestCluster(float searchRadius)
+        {
+            return GetLargestCoordinateCluster(searchRadius);
         }
 
         public Dictionary<string, int> GetTopEmailDomains(int amount)
@@ -105,11 +107,7 @@ namespace FatShark_CodeSample.ViewModels
             
             List<SampleData> dataList = [];
             List<string?> emails = [];
-            List<string?> webpages = [];
-            List<string?> companies = [];
-            List<string?> counties = [];
             List<string?> postalCodes = [];
-            List<string?> city = [];
 
             using (StreamReader streamReader = new StreamReader(_filePath))
             {
@@ -129,38 +127,32 @@ namespace FatShark_CodeSample.ViewModels
                     data.SetDataType(SampleType.Phone2, dataArray[8]);
                     data.SetDataType(SampleType.Email, dataArray[9]);
                     data.SetDataType(SampleType.Webpage, dataArray[10]);
-
+                    
                     emails.Add(data.GetDataType(SampleType.Email));
-                    webpages.Add(data.GetDataType(SampleType.Webpage));
-                    counties.Add(data.GetDataType(SampleType.County));
                     postalCodes.Add(data.GetDataType(SampleType.PostalCode));
-                    city.Add(data.GetDataType(SampleType.City));
-                    companies.Add(data.GetDataType(SampleType.Company));
                     
                     dataList.Add(data);
                 }
                 AllEmails = emails.ToArray();
-                AllWebPages = webpages.ToArray();
-                AllCounties = counties.ToArray();
                 AllPostalCodes = postalCodes.ToArray();
-                AllCompanies = companies.ToArray();
-                AllCities = city.ToArray();
-                
+
+                Data = dataList.ToArray();
             }
             return dataList.ToArray();
         }
 
-        void BrowseFilePath()
+        string BrowseFilePath()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.ShowDialog();
             
             if (String.IsNullOrEmpty(openFileDialog.FileName))
             {
-                return;
+                return "Empty File Path";
             }
 
             _filePath = openFileDialog.FileName;
+            return openFileDialog.FileName.ToString();
         }
         
         static string?[] SplitWithQuotes(string data)
@@ -211,10 +203,11 @@ namespace FatShark_CodeSample.ViewModels
         
         private async Task GetPostcodesAsync(List<string> postcodes, string filter = null)
         {
-            const int itemsToFetch = 98;
+            postcodes.RemoveAll(item => item == "");
+            
             Dictionary<string, string[]> queryParameters = new Dictionary<string, string[]>
             {
-                { "postcodes", postcodes[..itemsToFetch].ToArray()},
+                { "postcodes", postcodes.ToArray()},
             };
             
             string url = "https://api.postcodes.io/postcodes/";
@@ -231,7 +224,7 @@ namespace FatShark_CodeSample.ViewModels
             
             var responseString = await response.Content.ReadAsStringAsync();
             
-            for (int i = 0; i < itemsToFetch; i++)
+            for (int i = 0; i < postcodes.Count; i++)
             {
                 var data  = JObject.Parse(responseString)["result"]?[i]?["result"];
                 
@@ -243,8 +236,22 @@ namespace FatShark_CodeSample.ViewModels
                     Longitude = data["longitude"]?.ToObject<double>() ?? 0.0,
                     Latitude = data["latitude"]?.ToObject<double>() ?? 0.0,
                 };
-                
-                _collectedCoords.Coordinates.Add(coordinate);
+
+                var isDuplicate = false;
+                // Check for duplicates
+                foreach (var collectedCoordsCoordinate in _collectedCoords.Coordinates)
+                {
+                    if (collectedCoordsCoordinate.Postcode == coordinate.Postcode)
+                    {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!isDuplicate)
+                {
+                    _collectedCoords.Coordinates.Add(coordinate);
+                }
             }
         }
 
@@ -253,7 +260,15 @@ namespace FatShark_CodeSample.ViewModels
             List<string> tempContainer = AllPostalCodes.ToList();
             tempContainer.RemoveAt(0);
 
-            await GetPostcodesAsync(tempContainer, "postcode,longitude,latitude");
+            int itemsPerFetch = 100;
+            int timesToFetch = tempContainer.Count / itemsPerFetch;
+            int start = 0;
+            
+            for (int i = 0; i < timesToFetch; i++)
+            {
+                await GetPostcodesAsync(tempContainer.Slice(start, itemsPerFetch), "postcode,longitude,latitude");
+                start = 0 + itemsPerFetch * i;
+            }
         }
 
         private CoordinateCluster GetLargestCoordinateCluster(float searchRadius)
@@ -282,6 +297,23 @@ namespace FatShark_CodeSample.ViewModels
                 {
                     currentCluster.OriginCoordinate = _collectedCoords.Coordinates[i];
                     currentCluster.Coordinates = [..tempCoordinates];
+                }
+            }
+            
+            foreach (var sampleData in Data)
+            {
+                if (sampleData.GetDataType(SampleType.PostalCode) == currentCluster.OriginCoordinate.Postcode && !currentCluster.Inhabitants.Contains(sampleData.GetDataType(SampleType.FirstName) + " " + sampleData.GetDataType(SampleType.LastName)))
+                {
+                    currentCluster.Inhabitants.Add(sampleData.GetDataType(SampleType.FirstName) + " " + sampleData.GetDataType(SampleType.LastName));
+                    continue;
+                }
+
+                foreach (var currentClusterCoordinate in currentCluster.Coordinates)
+                {
+                    if (sampleData.GetDataType(SampleType.PostalCode) == currentClusterCoordinate.Postcode && !currentCluster.Inhabitants.Contains(sampleData.GetDataType(SampleType.FirstName) + " " + sampleData.GetDataType(SampleType.LastName)))
+                    {
+                        currentCluster.Inhabitants.Add(sampleData.GetDataType(SampleType.FirstName) + " " + sampleData.GetDataType(SampleType.LastName));
+                    }
                 }
             }
 

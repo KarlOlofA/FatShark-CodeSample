@@ -109,8 +109,10 @@ namespace FatShark_CodeSample
         public CoordinateCluster()
         {
             Coordinates = [];
+            Inhabitants = [];
         }
         public Coordinate OriginCoordinate { get; set; }
         public List<Coordinate> Coordinates { get; set; }
+        public List<string> Inhabitants { get; set; }
     }
 }

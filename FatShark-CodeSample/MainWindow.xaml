@@ -7,37 +7,64 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="{Binding WindowHeight}" Width="{Binding WindowWidth}" Loaded="Window_Loaded">
     <Grid Background="Black">
-        <StackPanel>
-            <Grid x:Name="ToolBarGrid" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="50" Background="DarkGray">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="auto">
-                    <Button x:Name="SelectFilePathButton" Click="SelectFilePathButton_OnClick">
-                        <TextBlock Text="{Binding DataImportFilePath}" Foreground="Black" TextAlignment="Center" HorizontalAlignment="Left"></TextBlock>
-                    </Button>
-                    <Button x:Name="ImportButton" Click="ImportButton_OnClick">
-                        <TextBlock Text="Import Data" Foreground="Black" TextAlignment="Center" HorizontalAlignment="Right"></TextBlock>
-                    </Button>
-                    <Button x:Name="ProcessPostCodesButton" Click="ProcessPostCodesButton_OnClick">
-                        <TextBlock Text="Process PostCodes" Foreground="Black" TextAlignment="Center" HorizontalAlignment="Right"></TextBlock>
-                    </Button>
-                </StackPanel>
-            </Grid>
-            
-            <Grid x:Name="ContentGrid" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="auto">
+        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="auto" Height="auto">
+            <StackPanel HorizontalAlignment="Stretch" Width="auto">
+                <Grid x:Name="ToolBarGrid" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="50" Background="Black">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="auto">
+                        <Button x:Name="SelectFilePathButton" Click="SelectFilePathButton_OnClick">
+                            <TextBlock Name="DataImportFilePathTb" Text="{Binding DataImportFilePath}" Foreground="Black" TextAlignment="Center" HorizontalAlignment="Left" Margin="5, 5,5,5"></TextBlock>
+                        </Button>
+                        <Button x:Name="ImportButton" Click="ImportButton_OnClick">
+                            <TextBlock Text="Import Data" Foreground="Black" TextAlignment="Center" HorizontalAlignment="Right" Margin="5, 5,5,5"></TextBlock>
+                        </Button>
+                        <Button x:Name="ProcessPostCodesButton" Click="ProcessPostCodesButton_OnClick">
+                            <TextBlock Text="Determine Master Cluster" Foreground="Black" TextAlignment="Center" HorizontalAlignment="Right" Margin="5, 5,5,5"></TextBlock>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+                <Grid x:Name="Titles" HorizontalAlignment="Stretch" VerticalAlignment="Top" Width="auto" Height="auto" Background="Black">
+                    <TextBlock
+                        Name="MasterClusterTb"
+                        Background="Black" 
+                        Foreground="White" 
+                        FontSize="30" 
+                        TextAlignment="Left"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Text="{Binding Path=MasterClusterName}">
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
+            <DockPanel Margin="0,100,0,0">
+                <Grid x:Name="ContentGrid" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="auto">
 
-                <Grid HorizontalAlignment="Stretch" Background="Gray" Width="auto" Height="auto" Margin="2, 2, 2, 2"></Grid>
-
-                <DataGrid Name="DataGridView" Width="auto" HorizontalAlignment="Right" Margin="60, 2, 2, 2" Background="Black">
-                    <DataGrid.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="Black"></Setter>
-                            <Setter Property="Foreground" Value="White"></Setter>
-                            <Setter Property="BorderThickness" Value="0"></Setter>
-                            <Setter Property="FontSize" Value="13"></Setter>
-                        </Style>
-                    </DataGrid.CellStyle>
-                </DataGrid>
-            </Grid>
+                    <Grid HorizontalAlignment="Stretch" Width="auto" Height="auto"></Grid>
             
-        </StackPanel>
+                    <DataGrid Name="PostCodeGridView" Width="auto" HorizontalAlignment="Left" VerticalAlignment="Center" Background="Black">
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Black"></Setter>
+                                <Setter Property="Foreground" Value="White"></Setter>
+                                <Setter Property="BorderThickness" Value="0"></Setter>
+                                <Setter Property="FontSize" Value="13"></Setter>
+                            </Style>
+                        </DataGrid.CellStyle>
+                    </DataGrid>
+                
+                    <DataGrid Name="DataGridView" Width="auto" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Black">
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Background" Value="Black"></Setter>
+                                <Setter Property="Foreground" Value="White"></Setter>
+                                <Setter Property="BorderThickness" Value="0"></Setter>
+                                <Setter Property="FontSize" Value="13"></Setter>
+                            </Style>
+                        </DataGrid.CellStyle>
+                    </DataGrid>
+                </Grid>
+            </DockPanel>
+        </DockPanel>
+        
+        
     </Grid>
 </Window>
